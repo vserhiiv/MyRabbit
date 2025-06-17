@@ -1,4 +1,5 @@
 ﻿using RabbitMQ.Client;
+using System;
 using System.Text;
 
 var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -12,10 +13,23 @@ await channel.QueueDeclareAsync(
     autoDelete: false,
     arguments: null);
 
-var message = "But how can one possibly pay attention to a book with no pictures in it?";
+var random = new Random();
 
-var body = Encoding.UTF8.GetBytes(message);
+var messageId = 1;
 
-await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "hello", body: body);
-Console.WriteLine($" Published message: {message}");
-Console.ReadKey();
+while (true)
+{
+    var publishingTime = random.Next(1, 4);
+
+    var message = $"Sending messageId: {messageId}";
+
+    var body = Encoding.UTF8.GetBytes(message);
+
+    await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "hello", body: body);
+
+    Console.WriteLine($" Published message: {message}");
+
+    Task.Delay(TimeSpan.FromSeconds(publishingTime)).Wait();
+
+    messageId++;
+}

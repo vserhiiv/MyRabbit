@@ -13,17 +13,29 @@ await channel.QueueDeclareAsync(
     autoDelete: false,
     arguments: null);
 
+await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global:  false);
+
 var consumer = new AsyncEventingBasicConsumer(channel);
 
-consumer.ReceivedAsync += (model, ea) =>
-{
-    var body = ea.Body.ToArray();
-    var message = Encoding.UTF8.GetString(body);
-    Console.WriteLine($"Message Received: {message}");
+var random = new Random();
 
-    return Task.CompletedTask;
+consumer.ReceivedAsync += async (model, ea) =>
+{
+    var processingTime = random.Next(1, 6);
+
+    var body = ea.Body.ToArray();
+
+    var message = Encoding.UTF8.GetString(body);
+
+    Console.WriteLine($"Message Received: {message} will take {processingTime} to process");
+
+    Task.Delay(TimeSpan.FromSeconds(processingTime)).Wait();
+
+    await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
 };
 
-await channel.BasicConsumeAsync(queue: "hello", autoAck: true, consumer: consumer);
+await channel.BasicConsumeAsync(queue: "hello", autoAck: false, consumer: consumer);
+
+Console.WriteLine("Consuming...");
 
 Console.ReadKey();
