@@ -1,17 +1,11 @@
 ﻿using RabbitMQ.Client;
-using System;
 using System.Text;
 
 var factory = new ConnectionFactory() { HostName = "localhost" };
 using var connection = await factory.CreateConnectionAsync();
 using var channel = await connection.CreateChannelAsync();
 
-await channel.QueueDeclareAsync(
-    queue: "hello",
-    durable: false,
-    exclusive: false,
-    autoDelete: false,
-    arguments: null);
+await channel.ExchangeDeclareAsync(exchange: "pubsub", type: ExchangeType.Fanout);
 
 var random = new Random();
 
@@ -21,11 +15,11 @@ while (true)
 {
     var publishingTime = random.Next(1, 4);
 
-    var message = $"Sending messageId: {messageId}";
+    var message = $"Message: {messageId}";
 
     var body = Encoding.UTF8.GetBytes(message);
 
-    await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "hello", body: body);
+    await channel.BasicPublishAsync(exchange: "pubsub", routingKey: string.Empty, body: body);
 
     Console.WriteLine($" Published message: {message}");
 
