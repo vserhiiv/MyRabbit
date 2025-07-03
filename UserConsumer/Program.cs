@@ -12,7 +12,7 @@ var queueDeclare = await channel.QueueDeclareAsync();
 
 var queueName = queueDeclare.QueueName;
 
-await channel.QueueBindAsync(queue: queueName, exchange: "mytopicgexchange", routingKey: "*.europe.*");
+await channel.QueueBindAsync(queue: queueName, exchange: "mytopicgexchange", routingKey: "user.#");
 
 var consumer = new AsyncEventingBasicConsumer(channel);
 
@@ -20,13 +20,13 @@ consumer.ReceivedAsync += (model, ea) =>
 {
     var body = ea.Body.ToArray();
     var message = Encoding.UTF8.GetString(body);
-    Console.WriteLine($"Analytics - received new message: {message}");
+    Console.WriteLine($"Users - received new message: {message}");
 
     return Task.CompletedTask;
 };
 
 await channel.BasicConsumeAsync(queue: queueName, autoAck: true, consumer: consumer);
 
-Console.WriteLine("Analytics - Consuming...");
+Console.WriteLine("Users - Consuming...");
 
 Console.ReadKey();

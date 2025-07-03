@@ -6,13 +6,13 @@ var factory = new ConnectionFactory() { HostName = "localhost" };
 using var connection = await factory.CreateConnectionAsync();
 using var channel = await connection.CreateChannelAsync();
 
-await channel.ExchangeDeclareAsync(exchange: "myroutingexchange", ExchangeType.Direct);
+await channel.ExchangeDeclareAsync(exchange: "mytopicgexchange", ExchangeType.Topic);
 
 var queueDeclare = await channel.QueueDeclareAsync();
 
 var queueName = queueDeclare.QueueName;
 
-await channel.QueueBindAsync(queue: queueName, exchange: "myroutingexchange", routingKey: "paymentsonly");
+await channel.QueueBindAsync(queue: queueName, exchange: "mytopicgexchange", routingKey: "#.payments");
 
 var consumer = new AsyncEventingBasicConsumer(channel);
 

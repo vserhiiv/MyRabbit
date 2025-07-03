@@ -5,7 +5,7 @@ var factory = new ConnectionFactory() { HostName = "localhost" };
 using var connection = await factory.CreateConnectionAsync();
 using var channel = await connection.CreateChannelAsync();
 
-await channel.ExchangeDeclareAsync(exchange: "myroutingexchange", type: ExchangeType.Direct);
+await channel.ExchangeDeclareAsync(exchange: "mytopicgexchange", type: ExchangeType.Topic);
 
 var random = new Random();
 
@@ -15,13 +15,22 @@ while (true)
 {
     var publishingTime = random.Next(1, 4);
 
-    var message = $"Message: {messageId}";
+    var userPaymentMessage = $"A european user paid for something: {messageId}";
 
-    var body = Encoding.UTF8.GetBytes(message);
+    var userPaymentBody = Encoding.UTF8.GetBytes(userPaymentMessage);
 
-    await channel.BasicPublishAsync(exchange: "myroutingexchange", routingKey: "paymentsonly", body: body);
+    await channel.BasicPublishAsync(exchange: "mytopicgexchange", routingKey: "user.europe.payments", body: userPaymentBody);
+    
+    Console.WriteLine($"This message needs to be routed: {userPaymentMessage}");
 
-    Console.WriteLine($"This message needs to be routed: {message}");
+
+    var businessOrderMessage = $"A european bussiness ordered goods: {messageId}";
+    
+    var businessOrderBody = Encoding.UTF8.GetBytes(businessOrderMessage);
+    
+    await channel.BasicPublishAsync(exchange: "mytopicgexchange", routingKey: "business.europe.order", body: businessOrderBody);
+    
+    Console.WriteLine($"This message needs to be routed: {businessOrderMessage}");
 
     Task.Delay(TimeSpan.FromSeconds(publishingTime)).Wait();
 
