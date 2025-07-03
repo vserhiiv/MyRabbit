@@ -5,9 +5,9 @@ VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Producer", "Producer.csproj", "{7BF9630D-4245-4E16-BE95-505705872594}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Consumer", "..\Consumer\Consumer.csproj", "{5F13CEBB-CBC3-4FC7-AE0C-E077B51336F9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnalyticsConsumer", "..\Consumer\AnalyticsConsumer.csproj", "{5F13CEBB-CBC3-4FC7-AE0C-E077B51336F9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecondConsumer", "..\SecondConsumer\SecondConsumer.csproj", "{A1CC17DE-4CC1-4279-9B4E-CC737AEC51FD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentsConsumer", "..\SecondConsumer\PaymentsConsumer.csproj", "{A1CC17DE-4CC1-4279-9B4E-CC737AEC51FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
