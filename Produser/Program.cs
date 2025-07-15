@@ -1,29 +1,38 @@
 ﻿using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using System.Text;
 
 var factory = new ConnectionFactory() { HostName = "localhost" };
-
 using var connection = await factory.CreateConnectionAsync();
 using var channel = await connection.CreateChannelAsync();
 
-await channel.QueueDeclareAsync("request-queue", exclusive: false);
+await channel.ExchangeDeclareAsync(exchange: "mytopicgexchange", type: ExchangeType.Topic);
 
-var consumer = new AsyncEventingBasicConsumer(channel);
+var random = new Random();
 
-consumer.ReceivedAsync += (model, ea) =>
+var messageId = 1;
+
+while (true)
 {
-    Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId}");
+    var publishingTime = random.Next(1, 4);
 
-    var replyMessage = $"This is your reply: {ea.BasicProperties.CorrelationId}";
+    var userPaymentMessage = $"A european user paid for something: {messageId}";
 
-    var body = Encoding.UTF8.GetBytes(replyMessage);
+    var userPaymentBody = Encoding.UTF8.GetBytes(userPaymentMessage);
 
-    channel.BasicPublishAsync(string.Empty, ea.BasicProperties.ReplyTo!, body);
+    await channel.BasicPublishAsync(exchange: "mytopicgexchange", routingKey: "user.europe.payments", body: userPaymentBody);
+    
+    Console.WriteLine($"This message needs to be routed: {userPaymentMessage}");
 
-    return Task.CompletedTask;
-};
 
-await channel.BasicConsumeAsync(queue: "request-queue", autoAck: true, consumer: consumer);
+    var businessOrderMessage = $"A european bussiness ordered goods: {messageId}";
+    
+    var businessOrderBody = Encoding.UTF8.GetBytes(businessOrderMessage);
+    
+    await channel.BasicPublishAsync(exchange: "mytopicgexchange", routingKey: "business.europe.order", body: businessOrderBody);
+    
+    Console.WriteLine($"This message needs to be routed: {businessOrderMessage}");
 
-Console.ReadKey();
+    Task.Delay(TimeSpan.FromSeconds(publishingTime)).Wait();
+
+    messageId++;
+}
