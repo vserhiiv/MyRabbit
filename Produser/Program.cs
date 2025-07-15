@@ -1,21 +1,29 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using System.Text;
 
 var factory = new ConnectionFactory() { HostName = "localhost" };
+
 using var connection = await factory.CreateConnectionAsync();
 using var channel = await connection.CreateChannelAsync();
 
-await channel.QueueDeclareAsync(
-    queue: "hello",
-    durable: false,
-    exclusive: false,
-    autoDelete: false,
-    arguments: null);
+await channel.QueueDeclareAsync("request-queue", exclusive: false);
 
-var message = "But how can one possibly pay attention to a book with no pictures in it?";
+var consumer = new AsyncEventingBasicConsumer(channel);
 
-var body = Encoding.UTF8.GetBytes(message);
+consumer.ReceivedAsync += (model, ea) =>
+{
+    Console.WriteLine($"Received Request: {ea.BasicProperties.CorrelationId}");
 
-await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "hello", body: body);
-Console.WriteLine($" Published message: {message}");
+    var replyMessage = $"This is your reply: {ea.BasicProperties.CorrelationId}";
+
+    var body = Encoding.UTF8.GetBytes(replyMessage);
+
+    channel.BasicPublishAsync(string.Empty, ea.BasicProperties.ReplyTo!, body);
+
+    return Task.CompletedTask;
+};
+
+await channel.BasicConsumeAsync(queue: "request-queue", autoAck: true, consumer: consumer);
+
 Console.ReadKey();
